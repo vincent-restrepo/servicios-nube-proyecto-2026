@@ -1,33 +1,42 @@
 import json
-import psycopg2
 import os
+import psycopg2
 
 def lambda_handler(event, context):
-    conn = None
     try:
-        conn = psycopg2.connect(
+        connection = psycopg2.connect(
             host=os.environ['DB_HOST'],
             database=os.environ['DB_NAME'],
             user=os.environ['DB_USER'],
             password=os.environ['DB_PASS'],
-            port=os.environ.get('DB_PORT', '9876')
+            port=os.environ['DB_PORT']
         )
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM estudiante ORDER BY id;")
+
+        cursor = connection.cursor()
+        cursor.execute("SELECT * FROM students;")
         rows = cursor.fetchall()
 
-        columns = ['id', 'nombre', 'apellido', 'fecha_nacimiento', 'direccion', 'correo_electronico', 'carrera']
-        estudiantes = [dict(zip(columns, row)) for row in rows]
+        # Obtener nombres de columnas
+        colnames = [desc[0] for desc in cursor.description]
+
+        # Convertir resultados a JSON
+        result = [dict(zip(colnames, row)) for row in rows]
+
+        cursor.close()
+        connection.close()
 
         return {
-            'statusCode': 200,
-            'body': json.dumps(estudiantes)
+            "statusCode": 200,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps(result)
         }
 
     except Exception as e:
-        return {'statusCode': 500, 'body': json.dumps({'error': str(e)})}
+        print(f"Error en listar estudiantes: {e}")
+        return {
+            "statusCode": 500,
+            "body": json.dumps({"error": str(e)})
+        }
 
-    finally:
-        if conn:
-            cursor.close()
-            conn.close()
+
+
