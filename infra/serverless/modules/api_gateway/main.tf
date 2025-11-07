@@ -1,5 +1,7 @@
 variable "lambda_arn" {}
 variable "name" {}
+# 💡 Se añade esta variable para permitir rutas dinámicas (Ej: "GET /estudiantes")
+variable "route_key" {} 
 
 # 1️⃣ Crear la API HTTP
 resource "aws_apigatewayv2_api" "api" {
@@ -15,10 +17,10 @@ resource "aws_apigatewayv2_integration" "integration" {
   payload_format_version = "2.0"
 }
 
-# 3️⃣ Crear la ruta
+# 3️⃣ Crear la ruta (Ahora usa la variable 'route_key')
 resource "aws_apigatewayv2_route" "route" {
   api_id    = aws_apigatewayv2_api.api.id
-  route_key = "GET /estudiantes"
+  route_key = var.route_key 
   target    = "integrations/${aws_apigatewayv2_integration.integration.id}"
 }
 
