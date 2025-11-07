@@ -39,7 +39,7 @@ data "terraform_remote_state" "db_base" {
   backend = "s3"
   config = {
     bucket         = "nexa-cloud-tf-state-111811373821"
-    key            = "database.tfstate" # Lee el estado del compañero DB
+    key            = "database.tfstate" # Lee el estado de DB
     region         = "us-east-1"
   }
 }
