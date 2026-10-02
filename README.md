@@ -59,19 +59,20 @@ si todo salió bien (cualquier otro código se muestra al empleado como error).
 
 La sección *Balanceador de carga* consulta cada segundo la URL definida en `LOAD_BALANCER_URL`
 (mediante el proxy interno `/proxy`) y muestra la página que devuelva, sea cual sea.
-Esa URL debe ser la del balanceador de carga de la empresa.
+Esa URL debe ser la del balanceador de carga de la empresa. Las páginas que atiende el
+balanceador no las provee la intranet.
 
-Además, la intranet puede publicarse detrás del balanceador. Cada servidor expone
-`GET /api/estado`, que devuelve el estado de la instancia que responde en JSON
+### Estado del servicio
+
+La intranet expone `GET /api/estado`, que devuelve en JSON el estado del servidor donde corre
 (identificador de la instancia, uso de CPU, memoria, carga promedio y si hay una prueba de carga
-en curso). Esa ruta también sirve como **ruta de verificación de salud** del balanceador, y
-el encabezado `x-instancia` de su respuesta identifica a la instancia.
+en curso). La sección *Estado del servicio* lo consulta cada segundo.
 
 ### Prueba de carga
 
 La sección *Prueba de carga* inicia en segundo plano (`POST /api/carga?segundos=N`, entre 1 y 600)
 el comando `stress` en el servidor que atiende la petición, e indica en qué instancia quedó corriendo.
-La página muestra una gráfica del uso de CPU en tiempo real (una línea por instancia). Para
+La página muestra una gráfica del uso de CPU en tiempo real. Para
 observar el consumo en detalle, conéctese por SSH a esa instancia y use `top` o `htop`.
 Si el comando no está instalado, la prueba no inicia y la página muestra un error.
 El comando debe estar instalado en el servidor:
