@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Providers } from "./providers";
-import Navbar from '../components/NavBar';
+import AppShell from '../components/AppShell';
 
 const getCompanyName = () => process.env.COMPANY_NAME || 'Intranet corporativa';
 
@@ -22,8 +22,7 @@ export default function RootLayout({
     <html lang="es">
       <body>
         <Providers>
-          <Navbar companyName={getCompanyName()} />
-          <main>{children}</main>
+          <AppShell companyName={getCompanyName()}>{children}</AppShell>
         </Providers>
       </body>
     </html>
