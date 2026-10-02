@@ -36,6 +36,7 @@ const SECTIONS: NavSection[] = [
     title: 'Administración',
     links: [
       { href: '/administracion/carga', label: 'Prueba de carga' },
+      { href: '/administracion/balanceador', label: 'Balanceador de carga' },
       { href: '/administracion/estado', label: 'Estado del servicio' },
     ],
   },

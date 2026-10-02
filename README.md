@@ -14,6 +14,7 @@ de la empresa (Amazon Web Services).
 | Nuevo empleado | `/empleados/nuevo` | Formulario de registro | API de registro de empleados |
 | Galería | `/galeria` | Imágenes corporativas | API de imágenes |
 | Administración → Prueba de carga | `/administracion/carga` | Genera carga de CPU, memoria y disco en el servidor (uso del área de TI) | Comando `stress` en el servidor |
+| Administración → Balanceador de carga | `/administracion/balanceador` | La página que responde el balanceador de carga, consultada cada segundo | Balanceador de carga (`LOAD_BALANCER_URL`) |
 | Administración → Estado del servicio | `/administracion/estado` | Gráfica de CPU en vivo, instancia que responde, memoria y carga promedio | Ninguno |
 
 ## Requisitos de infraestructura
@@ -56,7 +57,11 @@ si todo salió bien (cualquier otro código se muestra al empleado como error).
 
 ### Balanceador de carga
 
-La intranet se publica detrás de un balanceador de carga. Cada servidor expone
+La sección *Balanceador de carga* consulta cada segundo la URL definida en `LOAD_BALANCER_URL`
+(mediante el proxy interno `/proxy`) y muestra la página que devuelva, sea cual sea.
+Esa URL debe ser la del balanceador de carga de la empresa.
+
+Además, la intranet puede publicarse detrás del balanceador. Cada servidor expone
 `GET /api/estado`, que devuelve el estado de la instancia que responde en JSON
 (identificador de la instancia, uso de CPU, memoria, carga promedio y si hay una prueba de carga
 en curso). Esa ruta también sirve como **ruta de verificación de salud** del balanceador, y
@@ -92,6 +97,7 @@ Copie `.env.example` a `.env` y complete los valores reales.
 | `AWS_S3_LAMBDA_URL`, `AWS_S3_LAMBDA_APIKEY` | API de imágenes |
 | `AWS_DB_LAMBDA_URL`, `AWS_DB_LAMBDA_APIKEY` | API de registro de empleados |
 | `STRESS_PATH` | Ruta del comando `stress` (por defecto `/usr/bin/stress`) |
+| `LOAD_BALANCER_URL` | URL del balanceador de carga (se lee al iniciar la aplicación) |
 
 En producción, configure estas variables en el lugar adecuado del servicio donde se despliegue
 la aplicación (no suba el archivo `.env` al repositorio).
