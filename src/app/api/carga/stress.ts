@@ -1,7 +1,6 @@
 
 import { spawn } from 'child_process';
-
-const stressPath = process.env.STRESS_PATH || '/usr/bin/stress'
+import { rutaStress } from '../../../lib/servidor';
 
 export default function executeStress(timeSeconds: number = 10): Promise<Boolean> {
 
@@ -14,14 +13,14 @@ export default function executeStress(timeSeconds: number = 10): Promise<Boolean
     ];
 
   return new Promise((resolve, reject) => {
-      const child = spawn(stressPath, params);
+      const child = spawn(rutaStress(), params);
       console.log(`⚠️⚠️⚠️⚠️⚠️⚠️   Starting stress   ⚠️⚠️⚠️⚠️⚠️⚠️`);
 
       const timeoutId = setTimeout(() => {
         console.error('>> too many time, killing the process child');
         child.stdin.end();
         child.kill();
-      }, 300000); // 300 seconds as max
+      }, (timeSeconds + 30) * 1000); // margen de 30 s sobre la duración pedida
 
 
       child.stdout.on('data', data => {

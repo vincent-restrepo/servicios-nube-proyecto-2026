@@ -13,8 +13,8 @@ de la empresa (Amazon Web Services).
 | Empleados | `/empleados` | Directorio de empleados | Base de datos PostgreSQL |
 | Nuevo empleado | `/empleados/nuevo` | Formulario de registro | API de registro de empleados |
 | Galería | `/galeria` | Imágenes corporativas | API de imágenes |
-| Administración → Prueba de carga | `/administracion/carga` | Genera carga de CPU en el servidor (uso del área de TI) | Comando `stress` en el servidor |
-| Administración → Estado del servicio | `/administracion/estado` | Estado del servicio a través del balanceador de carga | Balanceador de carga |
+| Administración → Prueba de carga | `/administracion/carga` | Genera carga de CPU, memoria y disco en el servidor (uso del área de TI) | Comando `stress` en el servidor |
+| Administración → Estado del servicio | `/administracion/estado` | Gráfica de CPU en vivo, instancia que responde, memoria y carga promedio | Ninguno |
 
 ## Requisitos de infraestructura
 
@@ -56,12 +56,20 @@ si todo salió bien (cualquier otro código se muestra al empleado como error).
 
 ### Balanceador de carga
 
-La intranet se publica detrás de un balanceador de carga. La sección
-*Estado del servicio* consulta la URL definida en `LOAD_BALANCER_URL`.
+La intranet se publica detrás de un balanceador de carga. Cada servidor expone
+`GET /api/estado`, que devuelve el estado de la instancia que responde en JSON
+(identificador de la instancia, uso de CPU, memoria, carga promedio y si hay una prueba de carga
+en curso). Esa ruta también sirve como **ruta de verificación de salud** del balanceador, y
+el encabezado `x-instancia` de su respuesta identifica a la instancia.
 
 ### Prueba de carga
 
-La sección *Prueba de carga* ejecuta el comando `stress` en el servidor, por lo que debe estar instalado:
+La sección *Prueba de carga* inicia en segundo plano (`POST /api/carga?segundos=N`, entre 1 y 600)
+el comando `stress` en el servidor que atiende la petición, e indica en qué instancia quedó corriendo.
+La página muestra una gráfica del uso de CPU en tiempo real (una línea por instancia). Para
+observar el consumo en detalle, conéctese por SSH a esa instancia y use `top` o `htop`.
+Si el comando no está instalado, la prueba no inicia y la página muestra un error.
+El comando debe estar instalado en el servidor:
 
 ```bash
 sudo apt install stress -y
@@ -84,7 +92,6 @@ Copie `.env.example` a `.env` y complete los valores reales.
 | `AWS_S3_LAMBDA_URL`, `AWS_S3_LAMBDA_APIKEY` | API de imágenes |
 | `AWS_DB_LAMBDA_URL`, `AWS_DB_LAMBDA_APIKEY` | API de registro de empleados |
 | `STRESS_PATH` | Ruta del comando `stress` (por defecto `/usr/bin/stress`) |
-| `LOAD_BALANCER_URL` | URL del balanceador de carga |
 
 En producción, configure estas variables en el lugar adecuado del servicio donde se despliegue
 la aplicación (no suba el archivo `.env` al repositorio).
