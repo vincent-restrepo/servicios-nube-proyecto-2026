@@ -5,7 +5,7 @@ const ImageGallery: React.FC<{ images: string[] }> = ({ images }) => {
     <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing={4}>
       {images.map((imageUrl, index) => (
         <Box key={index} borderWidth="1px" borderRadius="lg" overflow="hidden">
-          <Image src={imageUrl} alt={`Image ${index}`} />
+          <Image src={imageUrl} alt={`Imagen ${index + 1}`} />
         </Box>
       ))}
     </SimpleGrid>

@@ -1,27 +1,29 @@
-import { Container, Heading } from '@chakra-ui/react';
+import { Container, Heading, Stack, Text } from '@chakra-ui/react';
 import styles from './page.module.css'
 
 export default function Home() {
+  const companyName = process.env.COMPANY_NAME;
   return (
     <main className={styles.main}>
-      <Heading as="h1">
-        Bienvenidos
+      <Heading as="h1" textAlign="center">
+        Bienvenidos a la intranet{companyName ? ` de ${companyName}` : ''}
       </Heading>
       <Container>
-        <p>
-          Esta página de ejemplo permitirá evaluar lo aprendido
-          en el curso de Servicios en la nube, 2025-2.
-        </p>
-        <p>
-          El objetivo es hacer que cada una de las pestañas de
-          esta página, funcione correctamente. Para ello será necesario
-          el levantar los servicios adecuados según el caso.
-        </p>
-        <p>
-          Hay total libertad en la forma de hacerlo, la única limitante es
-          no cambiar el código fuente de esta página. Si por algún motivo
-          se encuentra con un error bloqueante, deberá informarlo oportunamente.
-        </p>
+        <Stack spacing={4} marginTop={6}>
+          <Text>
+            Este es el portal interno de la empresa. Aquí los empleados pueden
+            consultar la información corporativa y gestionar el directorio de personal.
+          </Text>
+          <Text>
+            Desde el menú puede ver los datos de la empresa, consultar el directorio
+            de empleados, registrar un nuevo empleado y revisar la galería de
+            imágenes corporativas.
+          </Text>
+          <Text>
+            El área de TI cuenta además con herramientas de administración para
+            verificar el estado del servicio y su capacidad de respuesta.
+          </Text>
+        </Stack>
       </Container>
     </main>
   )

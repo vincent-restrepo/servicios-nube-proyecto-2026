@@ -1,5 +1,5 @@
 import { Box, Center, Heading } from '@chakra-ui/react';
-import EstudianteForm from './form';
+import EmpleadoForm from './form';
 
 export default function Page({
   params,
@@ -13,9 +13,9 @@ export default function Page({
       <Center height="100vh">
         <Box>
           <Heading as="h1" size="lg" textAlign="center" color="gray.500">
-            Agregar Estudiante
+            Agregar Empleado
           </Heading>
-          <EstudianteForm />
+          <EmpleadoForm />
         </Box>
       </Center>
     </>

@@ -1,11 +1,20 @@
 'use client'
-import { Box, Flex, Link, Text, IconButton, Stack, useDisclosure } from '@chakra-ui/react';
-import { HamburgerIcon, CloseIcon } from '@chakra-ui/icons';
+import {
+  Box,
+  Button,
+  Flex,
+  IconButton,
+  Link,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Stack,
+  Text,
+  useDisclosure,
+} from '@chakra-ui/react';
+import { ChevronDownIcon, CloseIcon, HamburgerIcon } from '@chakra-ui/icons';
 import { ReactNode } from 'react';
-// import NextLink from 'next/link';
-
-
-
 
 const NavItem: React.FC<{ href: string; children: ReactNode; }> = ({ href, children }) => (
   <Box as="li" listStyleType="none" marginRight="4">
@@ -21,8 +30,28 @@ const NavItem: React.FC<{ href: string; children: ReactNode; }> = ({ href, child
   </Box>
 );
 
+const AdminMenu: React.FC = () => (
+  <Box as="li" listStyleType="none" marginRight="4">
+    <Menu>
+      <MenuButton
+        as={Button}
+        variant="link"
+        colorScheme="blue"
+        fontSize="lg"
+        fontWeight="bold"
+        rightIcon={<ChevronDownIcon />}
+      >
+        Administración
+      </MenuButton>
+      <MenuList>
+        <MenuItem as="a" href="/administracion/carga">Prueba de carga</MenuItem>
+        <MenuItem as="a" href="/administracion/estado">Estado del servicio</MenuItem>
+      </MenuList>
+    </Menu>
+  </Box>
+);
 
-const Navbar: React.FC = () => {
+const Navbar: React.FC<{ companyName: string }> = ({ companyName }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (
@@ -35,7 +64,7 @@ const Navbar: React.FC = () => {
       boxShadow="base"
       flexWrap="wrap"
     >
-      <Text fontSize="lg">Servicios en la Nube</Text>
+      <Text fontSize="lg" fontWeight="bold">{companyName}</Text>
       <IconButton
         display={{ base: 'block', md: 'none' }}
         aria-label="Abrir menú"
@@ -48,18 +77,14 @@ const Navbar: React.FC = () => {
         display={{ base: isOpen ? 'block' : 'none', md: 'flex' }}
       >
         <NavItem href="/">Inicio</NavItem>
-        <NavItem href="/CompanyName">Nombre</NavItem>
-        <NavItem href="/DbListing">DB Listing</NavItem>
-        <NavItem href="/imagesBucket">Imágenes</NavItem>
-        <NavItem href="/lambda">Lambda</NavItem>
-        <NavItem href="/loadingStress">Stress</NavItem>
-        <NavItem href="/monitoring">Load Balancer</NavItem>
+        <NavItem href="/empresa">Empresa</NavItem>
+        <NavItem href="/empleados">Empleados</NavItem>
+        <NavItem href="/empleados/nuevo">Nuevo empleado</NavItem>
+        <NavItem href="/galeria">Galería</NavItem>
+        <AdminMenu />
       </Stack>
     </Flex>
   );
 };
-
-
-
 
 export default Navbar;

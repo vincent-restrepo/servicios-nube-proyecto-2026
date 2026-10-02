@@ -1,78 +1,117 @@
+# Intranet corporativa de NexaCloud
 
-# Proyecto de Servicios en la nube 2026
+Aplicación web interna para los empleados de la empresa. Está desarrollada con
+[Next.js](https://nextjs.org/) y se despliega en la infraestructura en la nube
+de la empresa (Amazon Web Services).
 
-Este proyecto busca evaluar las capacidades de los estudiantes del curso de _Servicios en la nube_
-de a Universidad Nacional de Colombia sede Medellín, al implementar la infraestructura necesaria
-en la nube de Amazon Web Service (AWS), para correr de forma exitosa cada una de las secciones
-de este proyecto.
+## Secciones de la intranet
 
-## Dependencias
+| Sección | Ruta | Qué muestra | Servicio que necesita |
+|---|---|---|---|
+| Inicio | `/` | Bienvenida | Ninguno |
+| Empresa | `/empresa` | Nombre de la empresa (`COMPANY_NAME`) | Ninguno |
+| Empleados | `/empleados` | Directorio de empleados | Base de datos PostgreSQL |
+| Nuevo empleado | `/empleados/nuevo` | Formulario de registro | API de registro de empleados |
+| Galería | `/galeria` | Imágenes corporativas | API de imágenes |
+| Administración → Prueba de carga | `/administracion/carga` | Genera carga de CPU en el servidor (uso del área de TI) | Comando `stress` en el servidor |
+| Administración → Estado del servicio | `/administracion/estado` | Estado del servicio a través del balanceador de carga | Balanceador de carga |
 
-Este proyecto requiere **[Node.js versión 20 (la LTS actual)](https://nodejs.org/en/download)**. Además es necesario correr los comandos en un ambiente Linux, por ejemplo pueden usar [Windows Subsystem for Linux (WSL)](https://www.omgubuntu.co.uk/how-to-install-wsl2-on-windows-10) en caso tal use Windows como sistema operativo.
+## Requisitos de infraestructura
 
-Dentro de la carpeta del proyecto (local) correr el siguiente comando:
+### Base de datos
 
-```bash
-npm install
+PostgreSQL. El servidor **escucha en el puerto 9876** (política de la empresa; la aplicación
+no usa el puerto estándar 5432). El script [`database/ddl-empleado.sql`](database/ddl-empleado.sql)
+crea la tabla `public.empleado` y carga datos ficticios.
+
+### API de imágenes
+
+`GET` a `AWS_S3_LAMBDA_URL` con el header `x-api-key: <AWS_S3_LAMBDA_APIKEY>`.
+Debe responder JSON con la lista de URLs de las imágenes:
+
+```json
+{ "images": ["https://.../foto1.jpg", "https://.../foto2.jpg"] }
 ```
 
-Para realizar pruebas de estrés, es necesario que en el **servidor** en el que se ejecute disponga del comando `stress`. Dependiendo del sistema operativo, puede instalarse con alguno de los siguientes comandos:
+Las URLs deben poder abrirse desde el navegador del empleado. Imágenes corporativas:
+[carpeta compartida](https://drive.google.com/drive/folders/1lZPTUXAaDkVg0PWpys5wQ3OcJbO-4V9f?usp=share_link).
+
+### API de registro de empleados
+
+`POST` a `AWS_DB_LAMBDA_URL` con el header `x-api-key: <AWS_DB_LAMBDA_APIKEY>` y cuerpo JSON:
+
+```json
+{
+  "nombre": "Ana",
+  "apellido": "López",
+  "fecha_nacimiento": "2000-04-10",
+  "direccion": "Calle 321, Ciudad",
+  "correo_electronico": "ana.lopez@example.com",
+  "cargo": "Desarrolladora de software"
+}
+```
+
+Debe insertar el registro en la tabla `public.empleado` y responder con un código HTTP 2xx
+si todo salió bien (cualquier otro código se muestra al empleado como error).
+
+### Balanceador de carga
+
+La intranet se publica detrás de un balanceador de carga. La sección
+*Estado del servicio* consulta la URL definida en `LOAD_BALANCER_URL`.
+
+### Prueba de carga
+
+La sección *Prueba de carga* ejecuta el comando `stress` en el servidor, por lo que debe estar instalado:
 
 ```bash
 sudo apt install stress -y
 # Fedora
 sudo dnf install stress -y
-# Red Hat
+# Red Hat / Amazon Linux
 sudo yum install stress -y
-# Arch derivates
-sudo pacman -S stress 
+# Arch
+sudo pacman -S stress
 ```
 
-El proyecto está desarrollado utilizando [Next.js](https://nextjs.org/).
-Puede ejecutar el proyecto en entorno local utilizando cualquiera de estos comandos:
+## Variables de entorno
+
+Copie `.env.example` a `.env` y complete los valores reales.
+
+| Variable | Descripción |
+|---|---|
+| `COMPANY_NAME` | Nombre de la empresa que se muestra en la intranet |
+| `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_DATABASE` | Conexión a PostgreSQL (puerto 9876) |
+| `AWS_S3_LAMBDA_URL`, `AWS_S3_LAMBDA_APIKEY` | API de imágenes |
+| `AWS_DB_LAMBDA_URL`, `AWS_DB_LAMBDA_APIKEY` | API de registro de empleados |
+| `STRESS_PATH` | Ruta del comando `stress` (por defecto `/usr/bin/stress`) |
+| `LOAD_BALANCER_URL` | URL del balanceador de carga |
+
+En producción, configure estas variables en el lugar adecuado del servicio donde se despliegue
+la aplicación (no suba el archivo `.env` al repositorio).
+
+## Desarrollo local
+
+Requiere **[Node.js 20](https://nodejs.org/en/download)** y un entorno Linux (en Windows, WSL).
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Acceda a [http://localhost:3000](http://localhost:3000) para visualizar los resultados en el entorno local.
-
-El proyecto utiliza una base de datos PostgreSQL, un Bucket de S3, y un par de servicios Lambda.
-
-Además, se debe recordar del requerimiento denominado "Balanceador de carga ", que implica el uso de una URL que apunta a un balanceador de carga. Esta página se carga a través de un proxy interno y se muestra en un iFrame. 
+Abra [http://localhost:3000](http://localhost:3000).
 
 ## Despliegue
 
-Puede implementar este proyecto directamente en EC2 o utilizar Elastic Beanstalk. Se proporciona un archivo de ejemplo (.env.example) con las variables de entorno necesarias, pero se espera que, al realizar la implementación, se coloquen estas variables en las ubicaciones adecuadas, siguiendo las mejores prácticas para este tipo de aplicaciones.
-
-Si desea desplegar estas variables de entornos de forma local, necesita crear un archivo `.env ` y agregar el contenido del archivo de ejemplo reemplazando los datos de las configuraciones reales.
-
-Para preparar el proyecto para el despliegue deben seguir los siguientes pasos:
+Puede ejecutarse directamente en EC2 o en Elastic Beanstalk. Para generar el paquete:
 
 ```bash
+rm -rf .next
 npm run build
 ```
 
-Este comando nos creará el zip dentro de la carpeta, listo para subir a la nube.
+Esto crea un `.zip` en la carpeta superior, listo para subir. Más información en la
+[documentación de despliegue de Next.js](https://nextjs.org/docs/deployment).
 
-**Recomendación:** Cada vez que corra el anterior comando, asegurse de eliminar la carpeta .next, para que los cambios puedan surtir efectos.
+## Reporte de errores
 
-Consulte la [documentación de implementación de Next.js](https://nextjs.org/docs/deployment) para obtener más detalles.
-
-## Bases de datos
-
-En la carpeta database, se encuentra un [archivo sql](https://github.com/adatapoint/servicios-nube-proyecto-2025/blob/main/database/ddl-estudiante.sql), el cual tiene el script para crear la tabla y registrar los datos dummy en la bases de datos.
-
-## Imágenes del Bucket S3
-
-En el siguiente [link](https://drive.google.com/drive/folders/1lZPTUXAaDkVg0PWpys5wQ3OcJbO-4V9f?usp=share_link), encuentran las imágenes que deben subir al bucket.
-
-## Errores en este proyecto
-
-Si detecta algún error en este proyecto, le instamos a informarlo a través de los canales oficiales del curso. También estamos abiertos a recibir Pull Requests, aunque no se garantiza su aceptación.
+Si detecta un error en la aplicación, repórtelo al área de TI por los canales oficiales.

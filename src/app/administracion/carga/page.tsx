@@ -11,13 +11,13 @@ const DestructionButtonPage: React.FC = () => {
   const fetchData = async (seconds: number) => {
     setLoading(true);
     const res = await fetch(
-      `/api/performHighServerLoad?duration=${seconds}`,
+      `/api/carga?duration=${seconds}`,
       {
         method: 'GET',
       },
     );
     setLoading(false);
-    window.alert('Finalizó!');
+    window.alert('La prueba de carga finalizó');
     return;
   };
   return (
@@ -30,18 +30,18 @@ const DestructionButtonPage: React.FC = () => {
             value={duration}
             onChange={(e) => setDuration(Number(e.target.value))}
             width="5em"
-            placeholder="Seconds"
+            placeholder="Segundos"
             mr="2"
           />
           <InputRightAddon>
-            Seconds
+            Segundos
           </InputRightAddon>
         </InputGroup>
         {isLoading ? (
           <Button
             disabled
             isLoading
-            loadingText="Loading"
+            loadingText="Ejecutando"
             colorScheme="red"
             size="lg"
           />
@@ -53,7 +53,7 @@ const DestructionButtonPage: React.FC = () => {
               fetchData(duration);
             }}
             >
-              Prueba de stress
+              Iniciar prueba de carga
               <Icon as={WarningTwoIcon} boxSize={6} />
           </Button>
         )}

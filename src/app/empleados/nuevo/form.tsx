@@ -12,16 +12,16 @@ import {
   AlertTitle,
   CloseButton,
 } from '@chakra-ui/react';
-import Estudiante from './model';
+import Empleado from './model';
 
-const EstudianteForm: React.FC = () => {
-  const initFormData: Estudiante = {
+const EmpleadoForm: React.FC = () => {
+  const initFormData: Empleado = {
     nombre: '',
     apellido: '',
-    fecha_nacimiento: new Date(),
+    fecha_nacimiento: '',
     direccion: '',
     correo_electronico: '',
-    carrera: '',
+    cargo: '',
   }
   const [isLoading, setLoading] = useState(false)
   const [formData, setFormData] = useState(initFormData);
@@ -46,7 +46,7 @@ const EstudianteForm: React.FC = () => {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/sendForm2Db', {
+      const response = await fetch('/api/empleados', {
         method: 'POST',
         body: JSON.stringify(formData),
         headers: {
@@ -59,20 +59,20 @@ const EstudianteForm: React.FC = () => {
       if (response.ok) {
         setAlert({
           status: 'success',
-          message: 'Datos enviados con éxito',
+          message: 'Empleado registrado con éxito',
         });
         setFormData(initFormData);
       } else {
         setAlert({
           status: 'error',
-          message: 'Error al enviar datos',
+          message: 'No se pudo registrar el empleado',
         });
       }
     } catch (error) {
       console.error('Error al enviar datos:', error);
       setAlert({
         status: 'error',
-        message: 'Error al enviar datos',
+        message: 'No se pudo registrar el empleado',
       });
     } finally {
       setLoading(false)
@@ -112,7 +112,7 @@ const EstudianteForm: React.FC = () => {
               required
               type="date"
               name="fecha_nacimiento"
-              value={formData.fecha_nacimiento.toLocaleString()}
+              value={formData.fecha_nacimiento}
               onChange={handleInputChange}
             />
           </FormControl>
@@ -139,27 +139,27 @@ const EstudianteForm: React.FC = () => {
             />
           </FormControl>
 
-          <FormControl id="carrera" isRequired>
-            <FormLabel>Carrera</FormLabel>
+          <FormControl id="cargo" isRequired>
+            <FormLabel>Cargo</FormLabel>
             <Input
               required
               type="text"
-              name="carrera"
-              value={formData.carrera}
+              name="cargo"
+              value={formData.cargo}
               onChange={handleInputChange}
             />
           </FormControl>
 
           {isLoading ? (
             <Button isLoading disabled colorScheme="blue">
-              Enviar
+              Registrar
             </Button>
           ) : (
             <Button
               colorScheme="blue"
               type="submit"
             >
-              Enviar
+              Registrar
             </Button>
           )
         }
@@ -176,4 +176,4 @@ const EstudianteForm: React.FC = () => {
   );
 };
 
-export default EstudianteForm;
+export default EmpleadoForm;
