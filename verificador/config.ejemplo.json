@@ -1,0 +1,11 @@
+{
+  "nombre_empresa": "NexaCloud",
+  "app_url": "http://ec2-xx-xx-xx-xx.compute-1.amazonaws.com:3000",
+  "balanceador_url": "http://su-balanceador.us-east-1.elb.amazonaws.com",
+  "api_imagenes_url": "https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/prod/",
+  "api_registro_url": "https://yyyyyyyyyy.execute-api.us-east-1.amazonaws.com/prod/",
+  "api_key": "su-api-key",
+  "bucket_imagenes": "nombre-del-bucket-de-imagenes",
+  "bucket_error": "nombre-del-bucket-de-la-pagina-de-error",
+  "region": "us-east-1"
+}

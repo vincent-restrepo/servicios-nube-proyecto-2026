@@ -98,7 +98,7 @@ Copie `.env.example` a `.env` y complete los valores reales.
 | `AWS_S3_LAMBDA_URL`, `AWS_S3_LAMBDA_APIKEY` | API de imágenes |
 | `AWS_DB_LAMBDA_URL`, `AWS_DB_LAMBDA_APIKEY` | API de registro de empleados |
 | `STRESS_PATH` | Ruta del comando `stress` (por defecto `/usr/bin/stress`) |
-| `LOAD_BALANCER_URL` | URL del balanceador de carga (se lee al iniciar la aplicación) |
+| `LOAD_BALANCER_URL` | URL del balanceador de carga (se lee al **compilar** la aplicación: si la cambia, vuelva a compilar con `npm run build`) |
 
 En producción, configure estas variables en el lugar adecuado del servicio donde se despliegue
 la aplicación (no suba el archivo `.env` al repositorio).
@@ -125,6 +125,61 @@ npm run build
 
 Esto crea un `.zip` en la carpeta superior, listo para subir. Más información en la
 [documentación de despliegue de Next.js](https://nextjs.org/docs/deployment).
+
+## Verificación de la infraestructura
+
+La carpeta [`verificador/`](verificador/) contiene el script con el que se revisa la infraestructura,
+el mismo que usa el profesor para calificar la parte técnica. Úselo para evaluar su trabajo antes de entregar.
+
+**Requisitos:** Python 3.8 o superior. No hay que instalar nada.
+
+### 1. Archivo de configuración
+
+El script no sabe dónde está su infraestructura: usted se lo dice. Copie `verificador/config.ejemplo.json`
+a `verificador/config.json` y complételo con las direcciones de su infraestructura:
+
+| Campo | Qué poner |
+|---|---|
+| `nombre_empresa` | El mismo valor de `COMPANY_NAME` del `.env` |
+| `app_url` | Dirección de la intranet, con el puerto, por ejemplo `http://ec2-...compute-1.amazonaws.com:3000` |
+| `balanceador_url` | Dirección del balanceador de carga (la misma de `LOAD_BALANCER_URL`) |
+| `api_imagenes_url` | Dirección del API de imágenes (`AWS_S3_LAMBDA_URL`) |
+| `api_registro_url` | Dirección del API de registro de empleados (`AWS_DB_LAMBDA_URL`) |
+| `api_key` | La API key (`AWS_S3_LAMBDA_APIKEY` y `AWS_DB_LAMBDA_APIKEY`) |
+| `bucket_imagenes` | Nombre del bucket con las imágenes |
+| `bucket_error` | Nombre del bucket con la página de error |
+| `region` | Región de AWS, por ejemplo `us-east-1` |
+
+El archivo contiene la API key: no lo suba a un repositorio público.
+
+### 2. Ejecutar
+
+```bash
+cd verificador
+python3 verificar.py --validar     # revisa el config.json y que cada dirección responda
+python3 verificar.py               # verificación completa
+```
+
+Opciones útiles:
+
+| Opción | Efecto |
+|---|---|
+| `--seccion balanceador` | Ejecuta solo una sección (`app`, `empleados`, `galeria`, `nuevo`, `balanceador`, `monitoreo`). Se puede repetir. |
+| `--aws` | Evalúa también el monitoreo. Usa el CLI de AWS con las credenciales que tenga configuradas. |
+| `--config otro.json` | Usa otro archivo de configuración. |
+
+### 3. Leer el resultado
+
+Cada verificación aparece con una marca (✔ cumple, ~ cumple en parte, ✘ no cumple), los puntos obtenidos
+y un detalle de lo que el script encontró. Al final se muestra el puntaje automático y se guarda `resultado.json`
+(sin la API key).
+
+Tenga en cuenta:
+
+- La sección *Nuevo empleado* **inserta dos empleados de prueba** en su base de datos.
+- El script solo prueba desde internet. Lo que no se ve desde afuera (como la alarma de CloudWatch) se evalúa con `--aws`.
+- La infraestructura debe estar encendida mientras se ejecuta.
+- Un ✘ en el balanceador puede ser mala suerte estadística: ejecute `--seccion balanceador` otra vez antes de concluir que algo está mal.
 
 ## Reporte de errores
 
