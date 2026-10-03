@@ -165,7 +165,7 @@ Opciones útiles:
 | Opción | Efecto |
 |---|---|
 | `--seccion balanceador` | Ejecuta solo una sección (`app`, `empleados`, `galeria`, `nuevo`, `balanceador`, `monitoreo`). Se puede repetir. |
-| `--aws` | Evalúa también el monitoreo. Usa el CLI de AWS con las credenciales que tenga configuradas. |
+| `--aws` | Autoevalúa el monitoreo (alarma de CPU y suscripción de correo). Usa el CLI de AWS con las credenciales que tenga configuradas. **No suma puntos.** |
 | `--config otro.json` | Usa otro archivo de configuración. |
 
 ### 3. Leer el resultado
@@ -177,7 +177,7 @@ y un detalle de lo que el script encontró. Al final se muestra el puntaje autom
 Tenga en cuenta:
 
 - La sección *Nuevo empleado* **inserta dos empleados de prueba** en su base de datos.
-- El script solo prueba desde internet. Lo que no se ve desde afuera (como la alarma de CloudWatch) se evalúa con `--aws`.
+- El script solo prueba desde internet. El **monitoreo** no suma puntos en el script: lo califica el profesor con el correo de alerta que usted le reenvía como adjunto cuando le llegue. `--aws` sirve para revisar antes que su alarma y su suscripción estén bien.
 - La infraestructura debe estar encendida mientras se ejecuta.
 - Para distinguir un servidor de otro, el script busca en la página el **ID de la instancia EC2** (con la forma `i-0123456789abcdef0`). Cada página de servidor debe mostrarlo.
 - Un ✘ en el balanceador puede ser mala suerte estadística: ejecute `--seccion balanceador` otra vez antes de concluir que algo está mal.

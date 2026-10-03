@@ -11,7 +11,7 @@ Uso:
     python3 verificar.py --config otro.json
     python3 verificar.py --validar             # solo revisa que config.json esté completo y que las direcciones respondan
     python3 verificar.py --seccion balanceador # una sola sección
-    python3 verificar.py --aws                 # incluye el monitoreo (necesita el CLI de AWS con sus credenciales)
+    python3 verificar.py --aws                 # autoevaluación del monitoreo (necesita el CLI de AWS con sus credenciales; no suma puntos)
 
 Nota: la sección "nuevo" inserta dos empleados de prueba en la base de datos.
 """
@@ -81,8 +81,12 @@ class Resultados:
     def __init__(self):
         self.filas = []  # dicts: seccion, nombre, maximo, puntos (None = no evaluado), detalle
 
-    def agregar(self, seccion, nombre, maximo, fraccion, detalle=""):
-        """fraccion en [0,1] o None si no se evaluó."""
+    def agregar(self, seccion, nombre, maximo, fraccion, detalle="", informativo=False):
+        """fraccion en [0,1] o None si no se evaluó. Las filas informativas no suman puntos."""
+        if informativo:
+            self.filas.append({"seccion": seccion, "nombre": nombre, "maximo": 0, "puntos": None,
+                               "informativo": True, "cumple": bool(fraccion), "detalle": detalle})
+            return
         puntos = None if fraccion is None else round(maximo * max(0.0, min(1.0, fraccion)), 2)
         self.filas.append({"seccion": seccion, "nombre": nombre, "maximo": maximo,
                            "puntos": puntos, "detalle": detalle})
@@ -312,17 +316,13 @@ def aws(args, region):
 
 
 def sec_monitoreo(cfg, res, ctx):
-    s = "Monitoreo"
-    nombres = [("Existe una alarma de CPU sobre el servidor de la app", 4),
-               ("La alarma notifica a un tema de SNS", 2),
-               ("El tema tiene una suscripción de correo confirmada", 4)]
+    """Autoevaluación del monitoreo. No suma puntos: el profesor lo califica con el correo de alerta."""
+    s = "Monitoreo (autoevaluación, no suma puntos)"
     if not ctx["usar_aws"]:
-        for n, mx in nombres:
-            res.agregar(s, n, mx, None, "no evaluado: ejecute con --aws")
+        print(color("  (monitoreo omitido: use --aws para revisar su alarma y su suscripción)", "90"))
         return
     if shutil.which("aws") is None:
-        for n, mx in nombres:
-            res.agregar(s, n, mx, 0, "no se encontró el CLI de AWS")
+        res.agregar(s, "CLI de AWS disponible", 0, 0, "no se encontró el comando aws", informativo=True)
         return
 
     region = cfg.get("region", "us-east-1")
@@ -330,17 +330,18 @@ def sec_monitoreo(cfg, res, ctx):
     try:
         alarmas = aws(["cloudwatch", "describe-alarms", "--alarm-types", "MetricAlarm"], region).get("MetricAlarms", [])
     except Exception as e:  # noqa: BLE001
-        for n, mx in nombres:
-            res.agregar(s, n, mx, 0, f"no se pudo consultar CloudWatch: {e}")
+        res.agregar(s, "Consulta a CloudWatch", 0, 0, f"no se pudo consultar: {e}", informativo=True)
         return
 
     cpu = [a for a in alarmas if a.get("MetricName") == "CPUUtilization"
            and any(d.get("Name") == "InstanceId" and d.get("Value") == instancia for d in a.get("Dimensions", []))]
-    res.agregar(s, nombres[0][0], 4, 1 if cpu else 0,
-                f"instancia de la app: {instancia or 'desconocida'}; alarmas de CPU encontradas: {len(cpu)}")
+    res.agregar(s, "Existe una alarma de CPU sobre el servidor de la app", 0, bool(cpu),
+                f"instancia de la app: {instancia or 'desconocida'}; alarmas de CPU encontradas: {len(cpu)}",
+                informativo=True)
 
     temas = sorted({t for a in cpu for t in a.get("AlarmActions", []) if ":sns:" in t})
-    res.agregar(s, nombres[1][0], 2, 1 if temas else 0, ", ".join(temas) or "la alarma no tiene acción de SNS")
+    res.agregar(s, "La alarma notifica a un tema de SNS", 0, bool(temas),
+                ", ".join(temas) or "la alarma no tiene acción de SNS", informativo=True)
 
     confirmada = False
     for t in temas:
@@ -350,8 +351,8 @@ def sec_monitoreo(cfg, res, ctx):
             continue
         if any(x.get("Protocol") == "email" and x.get("SubscriptionArn", "").startswith("arn:") for x in subs):
             confirmada = True
-    res.agregar(s, nombres[2][0], 4, 1 if confirmada else 0,
-                "" if confirmada else "no hay suscripción de correo confirmada")
+    res.agregar(s, "El tema tiene una suscripción de correo confirmada", 0, confirmada,
+                "" if confirmada else "no hay suscripción de correo confirmada", informativo=True)
 
 
 FUNCIONES = {"app": sec_app, "empleados": sec_empleados, "galeria": sec_galeria,
@@ -371,7 +372,7 @@ def main():
     ap.add_argument("--seccion", action="append", choices=SECCIONES,
                     help="ejecutar solo estas secciones (se puede repetir)")
     ap.add_argument("--validar", action="store_true", help="solo revisar config.json y las direcciones")
-    ap.add_argument("--aws", action="store_true", help="evaluar el monitoreo con el CLI de AWS")
+    ap.add_argument("--aws", action="store_true", help="autoevaluar el monitoreo con el CLI de AWS (no suma puntos)")
     ap.add_argument("--muestras", type=int, default=200, help="peticiones al balanceador (por defecto 200)")
     ap.add_argument("--salida", default="resultado.json")
     args = ap.parse_args()
@@ -404,7 +405,9 @@ def main():
         if f["seccion"] != actual:
             actual = f["seccion"]
             print(color(actual, "1"))
-        if f["puntos"] is None:
+        if f.get("informativo"):
+            marca, txt = (color("✔", "32") if f["cumple"] else color("✘", "31")), "auto"
+        elif f["puntos"] is None:
             marca, txt = color("–", "33"), "n/e"
         elif f["maximo"] and f["puntos"] >= f["maximo"]:
             marca, txt = color("✔", "32"), f"{f['puntos']:g}/{f['maximo']}"
@@ -423,7 +426,8 @@ def main():
     print(color(f"Puntaje automático: {total:g} / {maximo_eval:g}", "1"))
     if maximo_eval != maximo_total:
         print(f"({maximo_total - maximo_eval:g} puntos no evaluados en esta corrida; máximo posible {maximo_total:g})")
-    print("El informe de arquitectura y la estimación de costos (15 puntos) los califica el profesor.")
+    print("El monitoreo (10 puntos) lo califica el profesor con el correo de alerta que usted le reenvía.")
+    print("El informe de arquitectura y la estimación de costos (15 puntos) también los califica el profesor.")
 
     seguro = {k: v for k, v in cfg.items() if k != "api_key"}
     with open(args.salida, "w", encoding="utf-8") as f:
