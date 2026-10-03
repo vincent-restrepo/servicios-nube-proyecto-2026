@@ -35,3 +35,8 @@ yarn-error.log*
 next-env.d.ts
 
 .env
+
+# verificador: contiene la API key y resultados locales
+verificador/config.json
+verificador/resultado.json
+resultado.json

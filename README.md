@@ -179,6 +179,7 @@ Tenga en cuenta:
 - La sección *Nuevo empleado* **inserta dos empleados de prueba** en su base de datos.
 - El script solo prueba desde internet. Lo que no se ve desde afuera (como la alarma de CloudWatch) se evalúa con `--aws`.
 - La infraestructura debe estar encendida mientras se ejecuta.
+- Para distinguir un servidor de otro, el script busca en la página el **ID de la instancia EC2** (con la forma `i-0123456789abcdef0`). Cada página de servidor debe mostrarlo.
 - Un ✘ en el balanceador puede ser mala suerte estadística: ejecute `--seccion balanceador` otra vez antes de concluir que algo está mal.
 
 ## Reporte de errores
